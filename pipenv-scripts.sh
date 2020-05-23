@@ -14,20 +14,11 @@ _pipenv_scripts_completion() {
     if [ ! -e PIPFILE ]; then
         return
     fi
-    
-    isScript=false
-    scripts=""
-    while read name cmd;
-    do
-        if ${isScript} ; then
-            scripts="${scripts}\n${name}"
-        fi
-        if [ "$name" == "[scripts]" ]; then
-            isScript=true
-        fi
-    done < ${PIPFILE}
 
-    COMPREPLY=( $(compgen -W "$(echo -e ${scripts})" ${cur} ) )
+    SECTION_END='^[ \t]*\[[^]]+\][ \t]*$'
+    commands=$(cat ${PIPFILE} | sed -nre "/^[ \t]*\[scripts\][ \t]*$/ {p;:LOOP;n;/${SECTION_END}/Q;p;b LOOP}" | sed -e "/scripts/d" | awk -F " " '{printf $1 " " }')
+    
+    COMPREPLY=( $(compgen -W "$(echo -e ${commands})" ${cur} ) )
     return 0
 }
 
